@@ -1,178 +1,199 @@
 package hw6;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 public class LibrarySystem {
 
+    // Book class
     static class Book {
-        String t;
-        String a;
-        String idk; // ISBN
-        boolean avail = true;
+        private String title;
+        private String author;
+        private String isbn;
+        private boolean isAvailable;
 
-        Book(String t, String a, String idk) {
-            this.t = t;
-            this.a = a;
-            this.idk = idk;
+        public Book(String title, String author, String isbn) {
+            this.title = title;
+            this.author = author;
+            this.isbn = isbn;
+            this.isAvailable = true;
         }
 
+        public String getTitle() { return title; }
+        public String getAuthor() { return author; }
+        public String getIsbn() { return isbn; }
+        public boolean isAvailable() { return isAvailable; }
+        public void setAvailable(boolean available) { this.isAvailable = available; }
+
         public String toString() {
-            return t + " by " + a + " [" + idk + "] - " + (avail ? "Yes" : "No");
+            return title + " by " + author + " (ISBN: " + isbn + ") - " +
+                    (isAvailable ? "Available" : "Checked out");
         }
     }
 
+    // Library class
     static class Library {
-        ArrayList<Book> books = new ArrayList<>();
+        private ArrayList<Book> books = new ArrayList<>();
 
-        void add(Book b) {
-            for (Book other : books) {
-                if (other.idk.equals(b.idk)) {
-                    System.out.println("nope, duplicate isbn");
+        public void addBook(Book book) {
+            for (Book b : books) {
+                if (b.getIsbn().equals(book.getIsbn())) {
+                    System.out.println("Book with that ISBN already exists.");
                     return;
                 }
             }
-            books.add(b);
-            System.out.println("added :)");
+            books.add(book);
+            System.out.println("Book added successfully.");
         }
 
-        void remove(String i) {
-            boolean gone = false;
-            for (int j = 0; j < books.size(); j++) {
-                if (books.get(j).idk.equals(i)) {
-                    books.remove(j);
-                    gone = true;
+        public void removeBook(String isbn) {
+            Book toRemove = null;
+            for (Book b : books) {
+                if (b.getIsbn().equals(isbn)) {
+                    toRemove = b;
                     break;
                 }
             }
-            if (gone) System.out.println("bye book");
-            else System.out.println("book not found");
-        }
-
-        void show() {
-            if (books.size() == 0) {
-                System.out.println("nothing here");
+            if (toRemove != null) {
+                books.remove(toRemove);
+                System.out.println("Book removed.");
             } else {
-                for (Book b : books) System.out.println(b);
+                System.out.println("Book not found.");
             }
         }
 
-        void findTitle(String t) {
-            boolean f = false;
-            for (Book b : books) {
-                if (b.t.equalsIgnoreCase(t)) {
+        public void displayAllBooks() {
+            if (books.isEmpty()) {
+                System.out.println("No books in the library.");
+            } else {
+                for (Book b : books) {
                     System.out.println(b);
-                    f = true;
                 }
             }
-            if (!f) System.out.println("nah, no match");
         }
 
-        void findAuthor(String a) {
-            boolean f = false;
+        public void searchByTitle(String title) {
+            boolean found = false;
             for (Book b : books) {
-                if (b.a.equalsIgnoreCase(a)) {
+                if (b.getTitle().equalsIgnoreCase(title)) {
                     System.out.println(b);
-                    f = true;
+                    found = true;
                 }
             }
-            if (!f) System.out.println("who?");
+            if (!found) {
+                System.out.println("No book found with that title.");
+            }
         }
 
-        void out(String i) {
+        public void searchByAuthor(String author) {
+            boolean found = false;
             for (Book b : books) {
-                if (b.idk.equals(i)) {
-                    if (b.avail) {
-                        b.avail = false;
-                        System.out.println("checked out");
+                if (b.getAuthor().equalsIgnoreCase(author)) {
+                    System.out.println(b);
+                    found = true;
+                }
+            }
+            if (!found) {
+                System.out.println("No book found by that author.");
+            }
+        }
+
+        public void checkOutBook(String isbn) {
+            for (Book b : books) {
+                if (b.getIsbn().equals(isbn)) {
+                    if (b.isAvailable()) {
+                        b.setAvailable(false);
+                        System.out.println("Book checked out.");
                     } else {
-                        System.out.println("already gone");
+                        System.out.println("Book is already checked out.");
                     }
                     return;
                 }
             }
-            System.out.println("cant find it");
+            System.out.println("Book not found.");
         }
 
-        void back(String i) {
+        public void returnBook(String isbn) {
             for (Book b : books) {
-                if (b.idk.equals(i)) {
-                    if (!b.avail) {
-                        b.avail = true;
-                        System.out.println("back in");
+                if (b.getIsbn().equals(isbn)) {
+                    if (!b.isAvailable()) {
+                        b.setAvailable(true);
+                        System.out.println("Book returned.");
                     } else {
-                        System.out.println("was already here");
+                        System.out.println("Book was already available.");
                     }
                     return;
                 }
             }
-            System.out.println("no such book");
+            System.out.println("Book not found.");
         }
     }
 
+    // Main method
     public static void main(String[] args) {
-        Scanner s = new Scanner(System.in);
-        Library l = new Library();
-        int c = 0;
+        Scanner sc = new Scanner(System.in);
+        Library lib = new Library();
+        int choice = 0;
 
-        while (c != 8) {
-            System.out.println("\nmenu (choose wisely):");
-            System.out.println("1 add");
-            System.out.println("2 remove");
-            System.out.println("3 show all");
-            System.out.println("4 find title");
-            System.out.println("5 find author");
-            System.out.println("6 checkout");
-            System.out.println("7 return");
-            System.out.println("8 quit");
+        while (choice != 8) {
+            System.out.println("\n=== Library Menu ===");
+            System.out.println("1. Add Book");
+            System.out.println("2. Remove Book");
+            System.out.println("3. Display All Books");
+            System.out.println("4. Search by Title");
+            System.out.println("5. Search by Author");
+            System.out.println("6. Check Out Book");
+            System.out.println("7. Return Book");
+            System.out.println("8. Exit");
+            System.out.print("Enter choice: ");
 
             try {
-                c = Integer.parseInt(s.nextLine());
-            } catch (Exception e) {
-                System.out.println("bruh that's not a number");
+                choice = Integer.parseInt(sc.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Enter a number.");
                 continue;
             }
 
-            switch (c) {
+            switch (choice) {
                 case 1:
-                    System.out.print("title? ");
-                    String t = s.nextLine();
-                    System.out.print("author? ");
-                    String a = s.nextLine();
-                    System.out.print("isbn? ");
-                    String i = s.nextLine();
-                    l.add(new Book(t, a, i));
+                    System.out.print("Title: ");
+                    String t = sc.nextLine();
+                    System.out.print("Author: ");
+                    String a = sc.nextLine();
+                    System.out.print("ISBN: ");
+                    String i = sc.nextLine();
+                    lib.addBook(new Book(t, a, i));
                     break;
                 case 2:
-                    System.out.print("isbn to remove: ");
-                    l.remove(s.nextLine());
+                    System.out.print("Enter ISBN to remove: ");
+                    lib.removeBook(sc.nextLine());
                     break;
                 case 3:
-                    l.show();
+                    lib.displayAllBooks();
                     break;
                 case 4:
-                    System.out.print("title to find: ");
-                    l.findTitle(s.nextLine());
+                    System.out.print("Enter title to search: ");
+                    lib.searchByTitle(sc.nextLine());
                     break;
                 case 5:
-                    System.out.print("author to find: ");
-                    l.findAuthor(s.nextLine());
+                    System.out.print("Enter author to search: ");
+                    lib.searchByAuthor(sc.nextLine());
                     break;
                 case 6:
-                    System.out.print("isbn to checkout: ");
-                    l.out(s.nextLine());
+                    System.out.print("Enter ISBN to check out: ");
+                    lib.checkOutBook(sc.nextLine());
                     break;
                 case 7:
-                    System.out.print("isbn to return: ");
-                    l.back(s.nextLine());
+                    System.out.print("Enter ISBN to return: ");
+                    lib.returnBook(sc.nextLine());
                     break;
                 case 8:
-                    System.out.println("later nerd");
+                    System.out.println("Goodbye!");
                     break;
                 default:
-                    System.out.println("that ain't it");
+                    System.out.println("Invalid option.");
             }
         }
 
-        s.close();
+        sc.close();
     }
 }
